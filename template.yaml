@@ -16,9 +16,10 @@ Globals:
       LogFormat: JSON
   Api:
     TracingEnabled: true
-    
+
 Resources:
-  productPurchaseDataHandlerdFunction:
+
+  ProductPurchaseDataHandlerFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Description: 'Lambda function that inserts product purchase data into DynamoDB table'
     Properties:
@@ -26,15 +27,34 @@ Resources:
       CodeUri: src/
       Handler: app.lambda_handler
       Runtime: python3.13
-      Policies:
-        DynamoDBCrudPolicy:
-          TableName: !Ref ProductPurchaseTable
+      Role: !GetAtt ProductPurchaseDataHandlerExecutionRole.Arn
       Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt ProductPurchaseQueue.Arn
+            BatchSize: 10
         ProductPurchaseApiEvent:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /product-purchase
             Method: POST
+
+  ProductPurchaseQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: product-purchase-queue
+      SqsManagedSseEnabled: true
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt ProductPurchaseDLQ.Arn
+        maxReceiveCount: 3
+
+  ProductPurchaseDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: product-purchase-dlq
+      MessageRetentionPeriod: 1209600  # 14 days
+      SqsManagedSseEnabled: true
 
   ProductPurchaseTable:
     Type: AWS::Serverless::SimpleTable
@@ -43,6 +63,8 @@ Resources:
       PrimaryKey:
         Name: ProductPurchaseId
         Type: String
+      SSESpecification:
+        SSEEnabled: true
 
   ApplicationResourceGroup:
     Type: AWS::ResourceGroups::Group
@@ -51,12 +73,52 @@ Resources:
         Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
       ResourceQuery:
         Type: CLOUDFORMATION_STACK_1_0
+
   ApplicationInsightsMonitoring:
     Type: AWS::ApplicationInsights::Application
     Properties:
       ResourceGroupName:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: 'true'
+
+  ProductPurchaseDataHandlerExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Policies:
+        - PolicyName: ProductPurchaseDataHandlerPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:PutItem"
+                Resource: !GetAtt ProductPurchaseTable.Arn
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - "sqs:ReceiveMessage"
+                  - "sqs:DeleteMessage"
+                  - "sqs:GetQueueAttributes"
+                Resource: !GetAtt ProductPurchaseQueue.Arn
+              - Effect: Allow
+                Action:
+                  - "sqs:SendMessage"
+                Resource: !GetAtt ProductPurchaseDLQ.Arn
+
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
   # Find out more about other implicit resources you can reference within SAM

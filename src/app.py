@@ -1,32 +1,40 @@
 import json
 import boto3
 import logging
+import uuid
+from datetime import datetime
 from botocore.exceptions import ClientError
 
 # Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-dynamodb_client = boto3.client('dynamodb')
+database = boto3.resource('dynamodb')
+table = database.Table('ProductPurchase')
 
 def lambda_handler(event, context):
     
     try:
-        dynamodb_client.put_item(
-            TableName='ProductPurchase',
-            Item={
-                'ProductPurchaseId': {'S': '1'},
-                'Name': {'S': 'Laptop'},
-                'Price': {'N': '1000'}
-            }
-        )
+        for record in event["Records"]:
+            
+            payload = json.loads(record["body"])
+            payload['ProductPurchaseId'] = str(uuid.uuid4())
+            payload['CreatedAt'] = datetime.now().isoformat()
+            
+            logger.info('Processing record', extra={
+                'payload': payload,
+                'message_id': record.get('messageId'),
+                'event_source': record.get('eventSource')
+            })
+            
+            table.put_item(Item=payload)
         
-        logger.info('Successfully inserted item into DynamoDB')
+        logger.info('Successfully inserted items into DynamoDB')
         return {
             "statusCode": 200,
             "body": json.dumps({
                 "message": "Successfully inserted data!"
-            }),
+            })
         }
         
     except ClientError as e:

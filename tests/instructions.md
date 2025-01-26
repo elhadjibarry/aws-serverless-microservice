@@ -1,0 +1,1 @@
+aws sqs send-message --queue-url https://sqs.us-east-1.amazonaws.com/484907526888/product-purchase-queue --message-body file://message-body-1.json 
