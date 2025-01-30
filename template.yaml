@@ -9,23 +9,45 @@ Description: >
 Globals:
   Function:
     Timeout: 3
-
     Tracing: Active
     # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
   Api:
     TracingEnabled: true
+    Cors:
+      AllowMethods: "'POST,OPTIONS'"
+      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+      AllowOrigin: "'*'"
 
 Resources:
 
+  ProductPurchaseMessageSenderFunction:
+    Type: AWS::Serverless::Function
+    Description: 'Lambda function that sends a message to SQS queue'
+    Properties:
+      FunctionName: productPurchaseMessageSender
+      CodeUri: src/
+      Handler: productPurchaseMessageSender.lambda_handler
+      Runtime: python3.13
+      Role: !GetAtt ProductPurchaseMessageSenderExecutionRole.Arn
+      Environment:
+        Variables:
+          QUEUE_URL: !Ref ProductPurchaseQueue
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /purchase
+            Method: POST
+
   ProductPurchaseDataHandlerFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Description: 'Lambda function that inserts product purchase data into DynamoDB table'
     Properties:
       FunctionName: productPurchaseDataHandler
       CodeUri: src/
-      Handler: app.lambda_handler
+      Handler: productPurchaseDataHandler.lambda_handler
       Runtime: python3.13
       Role: !GetAtt ProductPurchaseDataHandlerExecutionRole.Arn
       Events:
@@ -34,11 +56,6 @@ Resources:
           Properties:
             Queue: !GetAtt ProductPurchaseQueue.Arn
             BatchSize: 10
-        ProductPurchaseApiEvent:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
-          Properties:
-            Path: /product-purchase
-            Method: POST
 
   ProductPurchaseQueue:
     Type: AWS::SQS::Queue
@@ -81,6 +98,32 @@ Resources:
         Ref: ApplicationResourceGroup
       AutoConfigurationEnabled: 'true'
 
+  ProductPurchaseMessageSenderExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ProductPurchaseMessageSenderPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                Resource: !GetAtt ProductPurchaseQueue.Arn
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/productPurchaseMessageSender:*
+
   ProductPurchaseDataHandlerExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
@@ -107,7 +150,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: "*"
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/productPurchaseDataHandler:*
               - Effect: Allow
                 Action:
                   - "sqs:ReceiveMessage"
@@ -125,4 +168,4 @@ Outputs:
   # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   ProductPurchaseApi:
     Description: API Gateway endpoint URL for Prod stage for ProductPurchase function
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product-purchase/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/purchase/"
