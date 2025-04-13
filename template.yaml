@@ -5,12 +5,18 @@ Description: >
 
   Sample SAM Template for aws-serverless-e-commerce
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Parameters:
+  DomainName:
+    Type: String
+    Description: The domain name for the API (e.g., api.example.com)
+  HostedZoneId:
+    Type: AWS::Route53::HostedZone::Id
+    Description: The Route53 Hosted Zone ID where the DNS record will be created
+
 Globals:
   Function:
     Timeout: 3
     Tracing: Active
-    # You can add LoggingConfig parameters such as the Logformat, Log Group, and SystemLogLevel or ApplicationLogLevel. Learn more here https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html#sam-function-loggingconfig.
     LoggingConfig:
       LogFormat: JSON
   Api:
@@ -21,6 +27,41 @@ Globals:
       AllowOrigin: "'*'"
 
 Resources:
+  ApiCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+
+  ApiCustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      DomainName: !Ref DomainName
+      RegionalCertificateArn: !Ref ApiCertificate
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      SecurityPolicy: TLS_1_2
+
+  ApiBasePathMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    Properties:
+      DomainName: !Ref ApiCustomDomain
+      RestApiId: !Ref ServerlessRestApi
+      Stage: Prod
+
+  ApiDnsRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
+        HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
 
   ProductPurchaseMessageSenderFunction:
     Type: AWS::Serverless::Function
@@ -70,7 +111,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: product-purchase-dlq
-      MessageRetentionPeriod: 1209600  # 14 days
+      MessageRetentionPeriod: 1209600
       SqsManagedSseEnabled: true
 
   ProductPurchaseTable:
@@ -163,9 +204,14 @@ Resources:
                 Resource: !GetAtt ProductPurchaseDLQ.Arn
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
   ProductPurchaseApi:
     Description: API Gateway endpoint URL for Prod stage for ProductPurchase function
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/purchase/"
+  
+  CustomDomainUrl:
+    Description: Custom domain URL for the API
+    Value: !Sub "https://${DomainName}/purchase/"
+  
+  CustomDomainName:
+    Description: Custom domain name for the API
+    Value: !Ref DomainName
