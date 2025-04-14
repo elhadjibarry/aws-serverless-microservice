@@ -49,6 +49,24 @@ The first command will build the source of your application. The second command 
 * **Allow SAM CLI IAM role creation**: Many AWS SAM templates, including this example, create AWS IAM roles required for the AWS Lambda function(s) included to access AWS services. By default, these are scoped down to minimum required permissions. To deploy an AWS CloudFormation stack which creates or modifies IAM roles, the `CAPABILITY_IAM` value for `capabilities` must be provided. If permission isn't provided through this prompt, to deploy this example you must explicitly pass `--capabilities CAPABILITY_IAM` to the `sam deploy` command.
 * **Save arguments to samconfig.toml**: If set to yes, your choices will be saved to a configuration file inside the project, so that in the future you can just re-run `sam deploy` without parameters to deploy changes to your application.
 
+### Required Parameters
+
+This application requires the following parameters to be provided during deployment:
+
+* **DomainName**: The domain name for your API (e.g., api.example.com). This domain should be one you own and can manage in Route53.
+* **HostedZoneId**: The Route53 Hosted Zone ID where the DNS record will be created. You can find this in your Route53 console.
+
+You can provide these parameters in several ways:
+1. During the guided deployment (`sam deploy --guided`)
+2. In your samconfig.toml file under the [default.deploy.parameters] section:
+   ```toml
+   parameter_overrides = "DomainName='api.example.com' HostedZoneId='ZXXXXXXXXXXXXX'"
+   ```
+3. Directly in the deploy command:
+   ```bash
+   sam deploy --parameter-overrides "DomainName=api.example.com HostedZoneId=ZXXXXXXXXXXXXX"
+   ```
+
 You can find your API Gateway Endpoint URL in the output values displayed after deployment.
 
 ## Use the SAM CLI to build and test locally
@@ -128,3 +146,4 @@ sam delete --stack-name "aws-serverless-e-commerce"
 See the [AWS SAM developer guide](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html) for an introduction to SAM specification, the SAM CLI, and serverless application concepts.
 
 Next, you can use AWS Serverless Application Repository to deploy ready to use Apps that go beyond hello world samples and learn how authors developed their applications: [AWS Serverless Application Repository main page](https://aws.amazon.com/serverless/serverlessrepo/)
+

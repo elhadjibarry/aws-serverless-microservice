@@ -36,8 +36,14 @@ Resources:
         - DomainName: !Ref DomainName
           HostedZoneId: !Ref HostedZoneId
 
+  ServerlessRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+
   ApiCustomDomain:
     Type: AWS::ApiGateway::DomainName
+    DependsOn: ServerlessRestApi
     Properties:
       DomainName: !Ref DomainName
       RegionalCertificateArn: !Ref ApiCertificate
@@ -67,9 +73,9 @@ Resources:
     Type: AWS::Serverless::Function
     Description: 'Lambda function that sends a message to SQS queue'
     Properties:
-      FunctionName: productPurchaseMessageSender
+      FunctionName: ProductPurchaseMessageSender
       CodeUri: src/
-      Handler: productPurchaseMessageSender.lambda_handler
+      Handler: ProductPurchaseMessageSender.lambda_handler
       Runtime: python3.13
       Role: !GetAtt ProductPurchaseMessageSenderExecutionRole.Arn
       Environment:
@@ -79,16 +85,17 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            Path: /purchase
+            RestApiId: !Ref ServerlessRestApi
+            Path: /product-purchase
             Method: POST
 
   ProductPurchaseDataHandlerFunction:
     Type: AWS::Serverless::Function
     Description: 'Lambda function that inserts product purchase data into DynamoDB table'
     Properties:
-      FunctionName: productPurchaseDataHandler
+      FunctionName: ProductPurchaseDataHandler
       CodeUri: src/
-      Handler: productPurchaseDataHandler.lambda_handler
+      Handler: ProductPurchaseDataHandler.lambda_handler
       Runtime: python3.13
       Role: !GetAtt ProductPurchaseDataHandlerExecutionRole.Arn
       Events:
@@ -206,11 +213,11 @@ Resources:
 Outputs:
   ProductPurchaseApi:
     Description: API Gateway endpoint URL for Prod stage for ProductPurchase function
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/purchase/"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product-purchase/"
   
   CustomDomainUrl:
     Description: Custom domain URL for the API
-    Value: !Sub "https://${DomainName}/purchase/"
+    Value: !Sub "https://${DomainName}/product-purchase/"
   
   CustomDomainName:
     Description: Custom domain name for the API

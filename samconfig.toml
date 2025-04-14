@@ -16,6 +16,7 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
+parameter_overrides = "DomainName='api.example.com' HostedZoneId='ZXXXXXXXXXXXXX'"
 
 [default.package.parameters]
 resolve_s3 = true
@@ -28,3 +29,4 @@ warm_containers = "EAGER"
 
 [default.local_start_lambda.parameters]
 warm_containers = "EAGER"
+
