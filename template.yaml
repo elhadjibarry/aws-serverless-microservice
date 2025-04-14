@@ -39,7 +39,21 @@ Resources:
   ServerlessRestApi:
     Type: AWS::Serverless::Api
     Properties:
+      Name: ProductPurchaseApi
       StageName: Prod
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+        AllowOrigin: "'*'"
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiGatewayLogGroup.Arn
+        Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","caller":"$context.identity.caller","user":"$context.identity.user","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength"}'
+      MethodSettings:
+        - LoggingLevel: INFO
+          DataTraceEnabled: true
+          MetricsEnabled: true
+          ResourcePath: "/*"
+          HttpMethod: "*"
 
   ApiCustomDomain:
     Type: AWS::ApiGateway::DomainName
