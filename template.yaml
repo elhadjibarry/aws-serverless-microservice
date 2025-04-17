@@ -12,6 +12,9 @@ Parameters:
   HostedZoneId:
     Type: AWS::Route53::HostedZone::Id
     Description: The Route53 Hosted Zone ID where the DNS record will be created
+  AccessLogGroup:
+    Type: String
+    Description: Enter a name for the CloudWatch access log group
 
 Globals:
   Function:
@@ -21,6 +24,15 @@ Globals:
       LogFormat: JSON
   Api:
     TracingEnabled: true
+    AccessLogSetting:
+      DestinationArn: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AccessLogGroup}
+      Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user","requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+    MethodSettings:
+      - HttpMethod: '*'
+        ResourcePath: '/*'
+        LoggingLevel: INFO
+        DataTraceEnabled: true
+        MetricsEnabled: true
     Cors:
       AllowMethods: "'POST,OPTIONS'"
       AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
@@ -38,22 +50,9 @@ Resources:
 
   ServerlessRestApi:
     Type: AWS::Serverless::Api
+    DependsOn: ApiGatewayAccount
     Properties:
-      Name: ProductPurchaseApi
       StageName: Prod
-      Cors:
-        AllowMethods: "'POST,OPTIONS'"
-        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
-        AllowOrigin: "'*'"
-      AccessLogSetting:
-        DestinationArn: !GetAtt ApiGatewayLogGroup.Arn
-        Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","caller":"$context.identity.caller","user":"$context.identity.user","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength"}'
-      MethodSettings:
-        - LoggingLevel: INFO
-          DataTraceEnabled: true
-          MetricsEnabled: true
-          ResourcePath: "/*"
-          HttpMethod: "*"
 
   ApiCustomDomain:
     Type: AWS::ApiGateway::DomainName
@@ -82,6 +81,7 @@ Resources:
       AliasTarget:
         DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
+
 
   ProductPurchaseMessageSenderFunction:
     Type: AWS::Serverless::Function
@@ -145,20 +145,29 @@ Resources:
       SSESpecification:
         SSEEnabled: true
 
-  ApplicationResourceGroup:
-    Type: AWS::ResourceGroups::Group
+  ApiGatewayLogGroup:
+    Type: AWS::Logs::LogGroup
     Properties:
-      Name:
-        Fn::Sub: ApplicationInsights-SAM-${AWS::StackName}
-      ResourceQuery:
-        Type: CLOUDFORMATION_STACK_1_0
+      LogGroupName: !Sub '${AccessLogGroup}'
 
-  ApplicationInsightsMonitoring:
-    Type: AWS::ApplicationInsights::Application
+  ApiGatewayAccount:
+    Type: AWS::ApiGateway::Account
     Properties:
-      ResourceGroupName:
-        Ref: ApplicationResourceGroup
-      AutoConfigurationEnabled: 'true'
+      CloudWatchRoleArn: !GetAtt ApiGatewayCloudWatchRole.Arn
+
+  ApiGatewayCloudWatchRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          Action: 'sts:AssumeRole'
+          Effect: Allow
+          Principal:
+            Service: apigateway.amazonaws.com
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
 
   ProductPurchaseMessageSenderExecutionRole:
     Type: AWS::IAM::Role
