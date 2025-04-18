@@ -6,6 +6,15 @@ Description: >
   Sample SAM Template for aws-serverless-e-commerce
 
 Parameters:
+  StageName:
+    Type: String
+    Default: dev
+    Description: Stage name of the API. Default is dev.
+    AllowedValues:
+      - dev
+      - qa
+      - staging
+      - prod
   DomainName:
     Type: String
     Description: The domain name for the API (e.g., api.example.com)
@@ -23,6 +32,7 @@ Globals:
     LoggingConfig:
       LogFormat: JSON
   Api:
+    OpenApiVersion: 3.0.1
     TracingEnabled: true
     AccessLogSetting:
       DestinationArn: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AccessLogGroup}
@@ -48,15 +58,16 @@ Resources:
         - DomainName: !Ref DomainName
           HostedZoneId: !Ref HostedZoneId
 
-  ServerlessRestApi:
+  ServerlessApi:
     Type: AWS::Serverless::Api
     DependsOn: ApiGatewayAccount
     Properties:
-      StageName: Prod
+      Name: ProductPurchaseApi
+      StageName: !Ref StageName
 
   ApiCustomDomain:
     Type: AWS::ApiGateway::DomainName
-    DependsOn: ServerlessRestApi
+    DependsOn: ServerlessApi
     Properties:
       DomainName: !Ref DomainName
       RegionalCertificateArn: !Ref ApiCertificate
@@ -69,8 +80,8 @@ Resources:
     Type: AWS::ApiGateway::BasePathMapping
     Properties:
       DomainName: !Ref ApiCustomDomain
-      RestApiId: !Ref ServerlessRestApi
-      Stage: Prod
+      RestApiId: !Ref ServerlessApi
+      Stage: !Ref StageName
 
   ApiDnsRecord:
     Type: AWS::Route53::RecordSet
@@ -99,7 +110,7 @@ Resources:
         ApiEvent:
           Type: Api
           Properties:
-            RestApiId: !Ref ServerlessRestApi
+            RestApiId: !Ref ServerlessApi
             Path: /product-purchase
             Method: POST
 
@@ -235,13 +246,9 @@ Resources:
 
 Outputs:
   ProductPurchaseApi:
-    Description: API Gateway endpoint URL for Prod stage for ProductPurchase function
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/product-purchase/"
+    Description: API Gateway endpoint URL for ProductPurchase
+    Value: !Sub "https://${ServerlessApi}.execute-api.${AWS::Region}.amazonaws.com/${StageName}/product-purchase/"
   
   CustomDomainUrl:
     Description: Custom domain URL for the API
     Value: !Sub "https://${DomainName}/product-purchase/"
-  
-  CustomDomainName:
-    Description: Custom domain name for the API
-    Value: !Ref DomainName
