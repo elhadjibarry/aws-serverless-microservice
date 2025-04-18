@@ -33,20 +33,6 @@ Globals:
       LogFormat: JSON
   Api:
     OpenApiVersion: 3.0.1
-    TracingEnabled: true
-    AccessLogSetting:
-      DestinationArn: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AccessLogGroup}
-      Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user","requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
-    MethodSettings:
-      - HttpMethod: '*'
-        ResourcePath: '/*'
-        LoggingLevel: INFO
-        DataTraceEnabled: true
-        MetricsEnabled: true
-    Cors:
-      AllowMethods: "'POST,OPTIONS'"
-      AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
-      AllowOrigin: "'*'"
 
 Resources:
   ApiCertificate:
@@ -64,6 +50,20 @@ Resources:
     Properties:
       Name: ProductPurchaseApi
       StageName: !Ref StageName
+      TracingEnabled: true
+      AccessLogSetting:
+        DestinationArn: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${AccessLogGroup}
+        Format: '{ "requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user","requestTime":"$context.requestTime", "httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath", "status":"$context.status","protocol":"$context.protocol", "responseLength":"$context.responseLength" }'
+      MethodSettings:
+        - HttpMethod: '*'
+          ResourcePath: '/*'
+          LoggingLevel: INFO
+          DataTraceEnabled: true
+          MetricsEnabled: true
+      Cors:
+        AllowMethods: "'POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
+        AllowOrigin: "'*'"
 
   ApiCustomDomain:
     Type: AWS::ApiGateway::DomainName
@@ -92,7 +92,6 @@ Resources:
       AliasTarget:
         DNSName: !GetAtt ApiCustomDomain.RegionalDomainName
         HostedZoneId: !GetAtt ApiCustomDomain.RegionalHostedZoneId
-
 
   ProductPurchaseMessageSenderFunction:
     Type: AWS::Serverless::Function
