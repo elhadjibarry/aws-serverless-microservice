@@ -95,7 +95,7 @@ Resources:
 
   ProductPurchaseMessageSenderFunction:
     Type: AWS::Serverless::Function
-    Description: 'Lambda function that sends a message to SQS queue'
+    Description: 'Lambda function that sends product purchase data to SQS queue'
     Properties:
       FunctionName: ProductPurchaseMessageSender
       CodeUri: src/
@@ -112,6 +112,26 @@ Resources:
             RestApiId: !Ref ServerlessApi
             Path: /product-purchase
             Method: POST
+
+  ProductPurchaseGetFunction:
+    Type: AWS::Serverless::Function
+    Description: 'Lambda function that retrieves product purchase data from DynamoDB'
+    Properties:
+      FunctionName: ProductPurchaseGetHandler
+      CodeUri: src/
+      Handler: ProductPurchaseGetHandler.lambda_handler
+      Runtime: python3.13
+      Role: !GetAtt ProductPurchaseGetExecutionRole.Arn
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref ProductPurchaseTable
+      Events:
+        ApiEventGet:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessApi
+            Path: /product-purchase
+            Method: GET
 
   ProductPurchaseDataHandlerFunction:
     Type: AWS::Serverless::Function
@@ -242,6 +262,34 @@ Resources:
                 Action:
                   - "sqs:SendMessage"
                 Resource: !GetAtt ProductPurchaseDLQ.Arn
+
+  ProductPurchaseGetExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ProductPurchaseGetPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Query
+                  - dynamodb:GetItem
+                  - dynamodb:Scan
+                Resource: !GetAtt ProductPurchaseTable.Arn
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseGetHandler:*
 
 Outputs:
   ProductPurchaseApi:
