@@ -17,6 +17,41 @@ def lambda_handler(event, context):
         # Parse request body
         body = json.loads(event['body'])
         
+        # Determine HTTP method
+        http_method = event['httpMethod']
+        
+        if http_method == 'POST':
+            body['action'] = 'create'  # Add an action field to indicate a creation
+        
+        elif http_method == 'PUT':
+            if 'ProductPurchaseId' not in body:
+                logger.error("Missing 'ProductPurchaseId' field for update operation")
+                # Raise a ClientError for missing ProductPurchaseId
+                raise ClientError(
+                    error_response={
+                        'Error': {
+                            'Code': 'ValidationException',
+                            'Message': "Missing 'ProductPurchaseId' field for update operation"
+                        }
+                    },
+                    operation_name='PutProductPurchase'
+                )
+            body['action'] = 'update'  # Add an action field to indicate an update
+            
+        else:
+            # Handle unsupported methods
+            logger.error(f"Method {http_method} not allowed")
+            # Raise a ClientError for unsupported methods
+            raise ClientError(
+                error_response = {
+                    'Error': {
+                        'Code': 'NotImplementedException',
+                        'Message': f"Method {http_method} not allowed"
+                    }
+                },
+                operation_name = 'UnsupportedMethod'
+            )   
+        
         # Send message to SQS queue
         response = sqs.send_message(
             QueueUrl=QUEUE_URL,

@@ -106,12 +106,24 @@ Resources:
         Variables:
           QUEUE_URL: !Ref ProductPurchaseQueue
       Events:
-        ApiEvent:
+        ApiEventPost:
           Type: Api
           Properties:
             RestApiId: !Ref ServerlessApi
             Path: /product-purchase
             Method: POST
+        ApiEventPut:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessApi
+            Path: /product-purchase
+            Method: PUT
+        ApiEventDelete:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessApi
+            Path: /product-purchase
+            Method: DELETE
 
   ProductPurchaseGetFunction:
     Type: AWS::Serverless::Function
@@ -223,7 +235,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/productPurchaseMessageSender:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseMessageSender:*
 
   ProductPurchaseDataHandlerExecutionRole:
     Type: "AWS::IAM::Role"
@@ -251,7 +263,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/productPurchaseDataHandler:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseDataHandler:*
               - Effect: Allow
                 Action:
                   - "sqs:ReceiveMessage"

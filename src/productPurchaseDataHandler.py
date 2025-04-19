@@ -18,7 +18,8 @@ def lambda_handler(event, context):
         for record in event["Records"]:
             
             payload = json.loads(record["body"])
-            payload['ProductPurchaseId'] = str(uuid.uuid4())
+            if payload['action'] == 'create':
+                payload['ProductPurchaseId'] = str(uuid.uuid4())
             payload['CreatedAt'] = datetime.now().isoformat()
             
             logger.info('Processing record', extra={
