@@ -24,19 +24,21 @@ def lambda_handler(event, context):
             body['action'] = 'create'  # Add an action field to indicate a creation
         
         elif http_method == 'PUT':
-            if 'ProductPurchaseId' not in body:
-                logger.error("Missing 'ProductPurchaseId' field for update operation")
+            path_parameters = event.get('pathParameters')
+            if not path_parameters or 'id' not in path_parameters:
+                logger.error("Missing 'id' path parameter for update operation")
                 # Raise a ClientError for missing ProductPurchaseId
                 raise ClientError(
-                    error_response={
+                    error_response = {
                         'Error': {
                             'Code': 'ValidationException',
-                            'Message': "Missing 'ProductPurchaseId' field for update operation"
+                            'Message': "Missing 'id' path parameter for update operation"
                         }
                     },
-                    operation_name='PutProductPurchase'
+                    operation_name = 'PutProductPurchase'
                 )
             body['action'] = 'update'  # Add an action field to indicate an update
+            body['ProductPurchaseId'] = path_parameters['id']  # Add ProductPurchaseId to the body
             
         else:
             # Handle unsupported methods

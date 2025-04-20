@@ -116,7 +116,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref ServerlessApi
-            Path: /product-purchase
+            Path: /product-purchase/{id}  # Add a path parameter for the ID
             Method: PUT
         ApiEventDelete:
           Type: Api

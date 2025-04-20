@@ -1,9 +1,9 @@
 {
-  "ProductPurchaseId": "d4b5d11b-119b-4a02-a5d0-71fd192dba99",
-  "ProductName": "Jacket",
+  "ProductId": "d4b5d11b-119b-4a02-a5d0-71fd192dba99",
+  "ProductName": "Jeans",
   "Category": "Clothing",
   "PricePerUnit": "189",
   "CustomerId": "wf9s200a-72f4-42ge-pw0c-10f3jf03l59f",
-  "CustomerName": "Paul Jones",
+  "CustomerName": "Paul Milano",
   "TimeOfPurchase": "2021-02-15T19:13:32.314Z" 
 }

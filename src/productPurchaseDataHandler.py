@@ -18,15 +18,14 @@ def lambda_handler(event, context):
         for record in event["Records"]:
             
             payload = json.loads(record["body"])
-            if payload['action'] == 'create':
-                payload['ProductPurchaseId'] = str(uuid.uuid4())
-            payload['CreatedAt'] = datetime.now().isoformat()
-            
             logger.info('Processing record', extra={
                 'payload': payload,
                 'message_id': record.get('messageId'),
                 'event_source': record.get('eventSource')
             })
+            
+            if payload['action'] == 'create':
+                payload['ProductPurchaseId'] = str(uuid.uuid4())
             
             table.put_item(Item=payload)
         
