@@ -138,11 +138,17 @@ Resources:
         Variables:
           TABLE_NAME: !Ref ProductPurchaseTable
       Events:
-        ApiEventGet:
+        ApiEventGetAll:
           Type: Api
           Properties:
             RestApiId: !Ref ServerlessApi
             Path: /product-purchase
+            Method: GET
+        ApiEventGetById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ServerlessApi
+            Path: /product-purchase/{id}  # Add a path parameter for the ID
             Method: GET
 
   ProductPurchaseDataHandlerFunction:
