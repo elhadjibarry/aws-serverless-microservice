@@ -122,7 +122,7 @@ Resources:
           Type: Api
           Properties:
             RestApiId: !Ref ServerlessApi
-            Path: /product-purchase
+            Path: /product-purchase/{id}  # Add a path parameter for the ID
             Method: DELETE
 
   ProductPurchaseGetFunction:
@@ -263,6 +263,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - "dynamodb:PutItem"
+                  - "dynamodb:DeleteItem"
                 Resource: !GetAtt ProductPurchaseTable.Arn
               - Effect: Allow
                 Action:

@@ -26,23 +26,37 @@ def lambda_handler(event, context):
             
             if payload['action'] == 'create':
                 payload['ProductPurchaseId'] = str(uuid.uuid4())
-            
-            table.put_item(Item=payload)
+                table.put_item(Item=payload)
+            elif payload['action'] == 'update':
+                table.put_item(Item=payload)
+            elif payload['action'] == 'delete':
+                table.delete_item(Key={'ProductPurchaseId': payload['ProductPurchaseId']})
+            else:
+                logger.error(f"Unknown action: {payload['action']}")
+                raise ClientError(
+                    error_response={
+                        'Error': {
+                            'Code': 'ValidationException',
+                            'Message': f"Unknown action: {payload['action']}"
+                        }
+                    },
+                    operation_name='ProcessProductPurchase'
+                )
         
-        logger.info('Successfully inserted items into DynamoDB')
+        logger.info('Successfully processed data into DynamoDB')
         return {
             "statusCode": 200,
             "body": json.dumps({
-                "message": "Successfully inserted data!"
+                "message": "Successfully processed data!"
             })
         }
         
     except ClientError as e:
-        logger.error(f"Error inserting item into DynamoDB: {str(e)}")
+        logger.error(f"Error processing data into DynamoDB: {str(e)}")
         return {
             "statusCode": 400,
             "body": json.dumps({
-                "message": "Error inserting data",
+                "message": "Error processing data",
                 "error": str(e)
             }),
         }
