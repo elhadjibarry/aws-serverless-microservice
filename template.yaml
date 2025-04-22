@@ -61,7 +61,7 @@ Resources:
           DataTraceEnabled: true
           MetricsEnabled: true
       Cors:
-        AllowMethods: "'POST,OPTIONS'"
+        AllowMethods: "'POST,GET,PUT,OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key'"
         AllowOrigin: "'*'"
 
