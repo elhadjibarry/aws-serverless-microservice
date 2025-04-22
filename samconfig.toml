@@ -16,7 +16,7 @@ lint = true
 capabilities = "CAPABILITY_IAM"
 confirm_changeset = true
 resolve_s3 = true
-parameter_overrides = "DomainName='api.example.com' HostedZoneId='ZXXXXXXXXXXXXX'"
+parameter_overrides = "DomainName='api.example.com' HostedZoneId='ZXXXXXXXXXXXXX' AccessLogGroup=api-gw-access-log StageName=dev"
 
 [default.package.parameters]
 resolve_s3 = true

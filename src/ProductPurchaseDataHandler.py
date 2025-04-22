@@ -53,19 +53,7 @@ def lambda_handler(event, context):
         
     except ClientError as e:
         logger.error(f"Error processing data into DynamoDB: {str(e)}")
-        return {
-            "statusCode": 400,
-            "body": json.dumps({
-                "message": "Error processing data",
-                "error": str(e)
-            }),
-        }
+        raise Exception(f"Error processing data: {str(e)}")  # Raise an exception to trigger DLQ
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
-        return {
-            "statusCode": 500,
-            "body": json.dumps({
-                "message": "Internal server error",
-                "error": str(e)
-            }),
-        }
+        raise  # Re-raise the exception to trigger DLQ
