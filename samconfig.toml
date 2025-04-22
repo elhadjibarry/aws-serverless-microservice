@@ -3,7 +3,7 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = "aws-serverless-e-commerce"
+stack_name = "aws-serverless-microservice"
 
 [default.build.parameters]
 cached = true
