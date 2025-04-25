@@ -22,6 +22,7 @@ This project includes the following features:
 - **DynamoDB Storage**: Utilizes a fully managed NoSQL database for fast and reliable data storage
 - **Custom Domain Support**: Configures Route53 with a custom domain.
 - **Access and Execution Logging**: API Gateway access and execution logs are sent to CloudWatch for monitoring and auditing.
+- **Monitoring and Tracing**: AWS X-Ray integration for tracing requests through the system.
 - **IAM Roles**: Fine-grained permissions for Lambda functions to interact with AWS services securely.
 - **Security at rest**: Server-side encryption for DynamoDB and SQS to protect sensitive data.
 - **Security in transit**: HTTPS endpoints for secure communication between clients and the API.

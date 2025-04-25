@@ -28,7 +28,7 @@ Parameters:
 Globals:
   Function:
     Timeout: 3
-    Tracing: Active
+    Tracing: Active  # Enable AWS X-Ray tracing for all Lambda functions
     LoggingConfig:
       LogFormat: JSON
   Api:
@@ -273,6 +273,11 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseMessageSender:*
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                Resource: "*"
 
   # IAM role for Lambda function to handle product purchase data processing
   # This role allows the function to write to DynamoDB and SQS
@@ -305,6 +310,11 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                 Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseDataHandler:*
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                Resource: "*"
               - Effect: Allow
                 Action:
                   - "sqs:ReceiveMessage"
@@ -345,6 +355,11 @@ Resources:
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseGetHandler:*
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                Resource: "*"
 
 Outputs:
   ProductPurchaseApi:
