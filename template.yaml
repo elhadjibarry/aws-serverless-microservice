@@ -137,15 +137,15 @@ Resources:
 
   # Lambda function to retrieve product purchase data from DynamoDB
   # This function will be triggered by API Gateway GET requests
-  ProductPurchaseGetFunction:
+  ProductPurchaseDataReaderFunction:
     Type: AWS::Serverless::Function
     Description: 'Lambda function that retrieves product purchase data from DynamoDB'
     Properties:
-      FunctionName: ProductPurchaseGetHandler
+      FunctionName: ProductPurchaseDataReader
       CodeUri: src/
-      Handler: ProductPurchaseGetHandler.lambda_handler
+      Handler: ProductPurchaseDataReader.lambda_handler
       Runtime: python3.13
-      Role: !GetAtt ProductPurchaseGetExecutionRole.Arn
+      Role: !GetAtt ProductPurchaseDataReaderExecutionRole.Arn
       Environment:
         Variables:
           TABLE_NAME: !Ref ProductPurchaseTable
@@ -166,15 +166,15 @@ Resources:
   # Lambda function to handle product purchase data processing
   # This function will be triggered by SQS messages
   # It will process the product purchase and create or update or delete the data in the DynamoDB table
-  ProductPurchaseDataHandlerFunction:
+  ProductPurchaseDataWriterFunction:
     Type: AWS::Serverless::Function
     Description: 'Lambda function that inserts product purchase data into DynamoDB table'
     Properties:
-      FunctionName: ProductPurchaseDataHandler
+      FunctionName: ProductPurchaseDataWriter
       CodeUri: src/
-      Handler: ProductPurchaseDataHandler.lambda_handler
+      Handler: ProductPurchaseDataWriter.lambda_handler
       Runtime: python3.13
-      Role: !GetAtt ProductPurchaseDataHandlerExecutionRole.Arn
+      Role: !GetAtt ProductPurchaseDataWriterExecutionRole.Arn
       Events:
         SQSEvent:
           Type: SQS
@@ -282,7 +282,7 @@ Resources:
   # IAM role for Lambda function to handle product purchase data processing
   # This role allows the function to write to DynamoDB and SQS
   # It also allows the function to write logs to CloudWatch
-  ProductPurchaseDataHandlerExecutionRole:
+  ProductPurchaseDataWriterExecutionRole:
     Type: "AWS::IAM::Role"
     Properties:
       AssumeRolePolicyDocument:
@@ -295,7 +295,7 @@ Resources:
             Action:
               - "sts:AssumeRole"
       Policies:
-        - PolicyName: ProductPurchaseDataHandlerPolicy
+        - PolicyName: ProductPurchaseDataWriterPolicy
           PolicyDocument:
             Version: 2012-10-17
             Statement:
@@ -309,7 +309,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseDataHandler:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseDataWriter:*
               - Effect: Allow
                 Action:
                   - xray:PutTraceSegments
@@ -328,7 +328,7 @@ Resources:
 
   # IAM role for Lambda function to retrieve product purchase data from DynamoDB
   # This role allows the function to read from DynamoDB and write logs to CloudWatch
-  ProductPurchaseGetExecutionRole:
+  ProductPurchaseDataReaderExecutionRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -339,7 +339,7 @@ Resources:
               Service: lambda.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: ProductPurchaseGetPolicy
+        - PolicyName: ProductPurchaseDataReaderPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -354,7 +354,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseGetHandler:*
+                Resource: !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/ProductPurchaseDataReader:*
               - Effect: Allow
                 Action:
                   - xray:PutTraceSegments

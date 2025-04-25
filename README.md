@@ -6,11 +6,9 @@ The microservice provides a RESTful API for creating, retrieving, updating, and 
 
 Custom domain support is provided via Route53 and AWS Certificate Manager (ACM), enabling secure HTTPS endpoints for your API. CloudWatch is integrated for centralized logging, making it easy to monitor, troubleshoot, and audit the system.
 
-Here is the architecture diagram of the microservice:
+In this project, we will learn how to build a serverless microservice using AWS SAM template, deploy it using the AWS SAM CLI, and test the API endpoints.
 
-![Architecture Diagram](https://raw.githubusercontent.com/yourusername/aws-serverless-microservice/main/architecture-diagram.png)
-
-## 1. Features
+## 1. Features and Architecture
 This project includes the following features:
 
 - **API Gateway RESTful API**: Exposes endpoints for managing product purchases (create, retrieve, update, delete).
@@ -27,6 +25,10 @@ This project includes the following features:
 - **Security at rest**: Server-side encryption for DynamoDB and SQS to protect sensitive data.
 - **Security in transit**: HTTPS endpoints for secure communication between clients and the API.
 - **Infrastructure as Code**: Uses AWS SAM for defining and deploying the serverless architecture, making it easy to version control and replicate the environment.
+
+Here is the architecture diagram of the microservice:
+
+![Architecture Diagram](diagram/AWS-Serveless-Microservice.png)
 
 ## 2. SAM Template to build the infrastructure
 This project uses an AWS SAM (Serverless Application Model) template to define and deploy the serverless microservice. Below is a detailed breakdown of the template's components:
