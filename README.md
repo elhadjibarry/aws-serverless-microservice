@@ -80,6 +80,7 @@ The SAM template defines the following resources:
 - **`ProductPurchaseQueue`**:  
   The main SQS queue for decoupling API requests from data processing.  
   - Includes a redrive policy to send failed messages to the DLQ.
+  - Server-side encryption enabled.
 
 - **`ProductPurchaseDLQ`**:  
   A dead-letter queue for handling failed messages from the main SQS queue.
