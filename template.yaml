@@ -202,7 +202,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: product-purchase-dlq
-      MessageRetentionPeriod: 1209600
+      MessageRetentionPeriod: 1209600 # 14 days
       SqsManagedSseEnabled: true
 
   # DynamoDB table to store the product purchase data

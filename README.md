@@ -87,6 +87,8 @@ The SAM template defines the following resources:
 
 - **`ProductPurchaseDLQ`**:  
   A dead-letter queue for handling failed messages from the main SQS queue.
+  - Message retention period: 14 days.
+  - Server-side encryption enabled.
 
 #### **4. DynamoDB Table**
 - **`ProductPurchaseTable`**:  
