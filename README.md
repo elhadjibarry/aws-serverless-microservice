@@ -66,14 +66,17 @@ The SAM template defines the following resources:
 - **`ApiDnsRecord`**:  
   A Route53 DNS record that points the custom domain to the API Gateway domain name.
 
+- **`ApiCertificate`**:  
+  An ACM certificate for the custom domain, enabling HTTPS support.
+
 #### **2. Lambda Functions**
 - **`ProductPurchaseMessageSenderFunction`**:  
   Handles API Gateway POST, PUT, and DELETE requests and sends messages to the SQS queue.
 
-- **`ProductPurchaseGetFunction`**:  
+- **`ProductPurchaseDataReaderFunction`**:  
   Handles API Gateway GET requests to retrieve product purchase data from DynamoDB.
 
-- **`ProductPurchaseDataHandlerFunction`**:  
+- **`ProductPurchaseDataWriterFunction`**:  
   Processes messages from the SQS queue and updates DynamoDB with product purchase data.
 
 #### **3. SQS Queues**
@@ -100,11 +103,14 @@ The SAM template defines the following resources:
 - **`ProductPurchaseMessageSenderExecutionRole`**:  
   Grants permissions for the Lambda function to send messages to the SQS queue and write logs to CloudWatch.
 
-- **`ProductPurchaseDataHandlerExecutionRole`**:  
+- **`ProductPurchaseDataWriterExecutionRole`**:  
   Grants permissions for the Lambda function to process SQS messages, update DynamoDB, and write logs to CloudWatch.
 
-- **`ProductPurchaseGetExecutionRole`**:  
+- **`ProductPurchaseDataReaderExecutionRole`**:  
   Grants permissions for the Lambda function to read data from DynamoDB and write logs to CloudWatch.
+
+- **`ApiGatewayCloudWatchRole`**:  
+  Grants permissions for API Gateway to write access and execution logs to CloudWatch.
 
 ### 2.3 Outputs
 
