@@ -143,7 +143,7 @@ Before deploying, ensure you have the following:
    
    Use the SAM CLI to deploy the application with default parameters in the `samconfig.toml` file or override the parameters with command line or with guided prompts with the `--guided` option:
    ```bash
-   sam deploy --parameter-overrides "DomainName=api.visiotechno.net HostedZoneId=Z09968553KMXGUJJ03O1E AccessLogGroup=api-gw-access-log StageName=dev"
+   sam deploy --parameter-overrides "DomainName=api.example.com HostedZoneId=ZXXXXXXXXXXXXX AccessLogGroup=api-gw-access-log StageName=dev"
    ```
 4. **Verify the Deployment**
    
@@ -155,9 +155,9 @@ You can test the API using tools like Postman or curl. We will use curl commands
 ### 4.1 Create a Product Purchase
 We will create a new product purchase record using the POST method with the message bodies in the `test` folder. Execute the following command a couple of times by changing the message body:
 ```bash
-curl -X POST https://api.visiotechno.net/product-purchase/ \
+curl -X POST https://api.example.com/product-purchase/ \
 -H "Content-Type: application/json" \
--d @tests/message-body-1.json
+-d @events/message-body-1.json
 ```
 The response should look like the following. You can then check the DynamoDB table to see that the records have been created successfully:
 ```json
@@ -167,7 +167,7 @@ The response should look like the following. You can then check the DynamoDB tab
 ### 4.5 Get All Product Purchases
 To retrieve all product purchases, use the following GET request:
 ```bash
-curl -X GET https://api.visiotechno.net/product-purchase
+curl -X GET https://api.example.com/product-purchase
 ```
 The response should look like the following:
 ```json
@@ -219,7 +219,7 @@ The response should look like the following:
 ### 4.2 Get a Product Purchase
 To retrieve a Product Purchase, use the following GET request with one of the `ProductPurchaseId` from the previous response:
 ```bash
-curl -X GET https://api.visiotechno.net/product-purchase/0e2cd05f-b9df-4a30-bf32-c975f2c67281
+curl -X GET https://api.example.com/product-purchase/0e2cd05f-b9df-4a30-bf32-c975f2c67281
 ```
 The response should look like the following:
 ```json
@@ -241,9 +241,9 @@ The response should look like the following:
 ### 4.3 Update a Product Purchase
 To update a product purchase, use the following PUT request with one of the `ProductPurchaseId` from the previous response and change the message body:
 ```bash
-curl -X PUT https://api.visiotechno.net/product-purchase/0e2cd05f-b9df-4a30-bf32-c975f2c67281 \
+curl -X PUT https://api.example.com/product-purchase/0e2cd05f-b9df-4a30-bf32-c975f2c67281 \
 -H "Content-Type: application/json" \
--d @tests/message-body-2.json
+-d @events/message-body-2.json
 ```
 The response should look like the following. You can then run the GET request or check the DynamoDB table to see that the records have been updated successfully:
 ```json
@@ -252,7 +252,7 @@ The response should look like the following. You can then run the GET request or
 ### 4.4 Delete a Product Purchase
 To delete a product purchase, use the following DELETE request with one of the `ProductPurchaseId` from the previous response:
 ```bash
-curl -X DELETE https://api.visiotechno.net/product-purchase/0e2cd05f-b9df-4a30-bf32-c975f2c67281
+curl -X DELETE https://api.example.com/product-purchase/0e2cd05f-b9df-4a30-bf32-c975f2c67281
 ```
 The response should look like the following. You can then run the GET request or check the DynamoDB table to see that the record has been deleted successfully:
 ```json
